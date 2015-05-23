@@ -73,16 +73,10 @@ public final class Connection extends DORubyObject {
         connectionClass.defineAnnotatedMethods(Connection.class);
         setDriverDefinition(connectionClass, runtime, driver);
 
-        if (driver.supportsConnectionEncodings()) {
-            connectionClass.defineFastMethod("character_set", new Callback() {
-                public Arity getArity() {
-                    return Arity.NO_ARGUMENTS;
-                }
-                public IRubyObject execute(final IRubyObject recv, final IRubyObject[] args, Block block) {
-                    return recv.getInstanceVariables().fastGetInstanceVariable("@encoding");
-                }
-            });
+        if (!driver.supportsConnectionEncodings()) {
+          connectionClass.undefineMethod("character_set");
         }
+
         return connectionClass;
     }
 
@@ -240,6 +234,15 @@ public final class Connection extends DORubyObject {
         JDBCUtil.close(sqlConnection);
         sqlConnection = null;
         return runtime.getTrue();
+    }
+
+    /**
+     *
+     * @return
+     */
+    @JRubyMethod
+    public IRubyObject character_set() {
+      return this.getInstanceVariables().getInstanceVariable("@encoding");
     }
 
     // ------------------------------------------------ ADDITIONAL JRUBY METHODS

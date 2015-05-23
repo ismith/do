@@ -25,6 +25,7 @@ import org.jruby.exceptions.RaiseException;
 import org.jruby.javasupport.JavaEmbedUtils;
 import org.jruby.runtime.Block;
 import org.jruby.runtime.ObjectAllocator;
+import org.jruby.runtime.ThreadContext;
 import org.jruby.runtime.builtin.IRubyObject;
 
 import data_objects.drivers.DriverDefinition;
@@ -593,8 +594,14 @@ public class Command extends DORubyObject {
 
                     RubyRange range_value = (RubyRange) arg;
 
-                    driver.setPreparedStatementParam(ps, range_value.first(), index++);
-                    driver.setPreparedStatementParam(ps, range_value.last(), index++);
+                    Ruby runtime = Ruby.getThreadLocalRuntime();
+                    if (runtime == null) {
+                      runtime = Ruby.getGlobalRuntime();
+                    }
+
+                    ThreadContext thread_context = runtime.getCurrentContext();
+                    driver.setPreparedStatementParam(ps, range_value.first(thread_context), index++);
+                    driver.setPreparedStatementParam(ps, range_value.last(thread_context), index++);
 
                 } else {
                     // Otherwise, handle each argument
